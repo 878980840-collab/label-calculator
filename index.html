@@ -1,0 +1,248 @@
+<!-- Save as calculator.html -->
+<div class="calculator">
+  <h2>Sticker Label Quote Calculator</h2>
+
+  <div class="input-group">
+    <label>Length:</label>
+    <input type="number" id="length" step="0.01" min="0.01" value="100">
+    <select id="length-unit" class="unit-selector">
+      <option value="mm">Millimeters (mm)</option>
+      <option value="inch">Inches (inch)</option>
+      <option value="mil">Mils (mil)</option>
+    </select>
+    <span class="unit-note">Select your preferred unit</span>
+  </div>
+
+  <div class="input-group">
+    <label>Width:</label>
+    <input type="number" id="width" step="0.01" min="0.01" value="50" onchange="autoCalculatePlates()">
+    <select id="width-unit" class="unit-selector">
+      <option value="mm">Millimeters (mm)</option>
+      <option value="inch">Inches (inch)</option>
+      <option value="mil">Mils (mil)</option>
+    </select>
+    <span class="unit-note">Select your preferred unit</span>
+  </div>
+
+  <div class="input-group">
+    <label>Plates per row:</label>
+    <input type="number" id="plates" step="1" min="1" value="1" readonly>
+    <small>(Auto-calculated based on width)</small>
+  </div>
+
+  <div class="input-group">
+    <label>Quantity (sheets):</label>
+    <input type="number" id="quantity" min="100" value="1000">
+  </div>
+
+  <div class="input-group">
+    <label>Material:</label>
+    <select id="material">
+      <option value="1.5">Art Paper</option>
+      <option value="2.5">Glossy Silver</option>
+      <option value="2.1">Pearlescent Film</option>
+      <option value="2.3">White PE</option>
+      <option value="2.3">Synthetic Paper</option>
+      <option value="2.1">Transparent BOPP</option>
+      <option value="2.5">Transparent PE</option>
+      <option value="3.5">Double Transparent</option>
+      <option value="4">Holographic Silver</option>
+    </select>
+  </div>
+
+  <button onclick="calculate()">Calculate</button>
+  
+  <div id="result"></div>
+</div>
+
+<script>
+// Unit conversion factors
+const UNIT_TO_MM = {
+  mm: 1,
+  inch: 25.4,
+  mil: 0.0254
+};
+
+// Pricing factor (3 × 1.6 = 4.8)
+const PRICE_MULTIPLIER = 4.8;
+
+// Exchange rate
+const CNY_TO_USD = 0.1395;
+
+// Synchronize unit selections
+document.querySelectorAll('.unit-selector').forEach(select => {
+  select.addEventListener('change', function() {
+    document.querySelectorAll('.unit-selector').forEach(otherSelect => {
+      if(otherSelect !== this) {
+        otherSelect.value = this.value;
+      }
+    });
+  });
+});
+
+// Auto-calculate plates based on width (in mm)
+function autoCalculatePlates() {
+  const widthInput = document.getElementById('width');
+  const widthUnit = document.getElementById('width-unit').value;
+  const widthMm = (parseFloat(widthInput.value) || 0) * UNIT_TO_MM[widthUnit];
+  const platesInput = document.getElementById('plates');
+  
+  platesInput.value = widthMm <= 50 ? 4 : 
+                     widthMm <= 110 ? 2 : 1;
+}
+
+// Main calculation function
+function calculate() {
+  // Get inputs
+  const length = parseFloat(document.getElementById('length').value) || 0;
+  const lengthUnit = document.getElementById('length-unit').value;
+  const width = parseFloat(document.getElementById('width').value) || 0;
+  const widthUnit = document.getElementById('width-unit').value;
+  const plates = parseInt(document.getElementById('plates').value) || 1;
+  const quantity = parseInt(document.getElementById('quantity').value) || 0;
+  const materialPrice = parseFloat(document.getElementById('material').value);
+
+  // Convert to mm
+  const lengthMm = length * UNIT_TO_MM[lengthUnit];
+  const widthMm = width * UNIT_TO_MM[widthUnit];
+
+  // Calculate material dimensions
+  const lengthSpacing = 3;
+  const widthMargin = 3;
+  const plateSpacing = (plates - 1) * 3;
+  const materialWidth = (widthMm * plates) + widthMargin + plateSpacing;
+
+  // Calculate total length
+  const lossLength = quantity < 10000 ? 500000 : 1000000;
+  const adjustedQuantity = quantity / plates;
+  const totalLength = (lengthMm + lengthSpacing) * adjustedQuantity + lossLength;
+
+  // Calculate area
+  const areaM2 = (materialWidth * totalLength) / 1000000;
+
+  // Calculate prices (using 4.8 multiplier)
+  const salePrice = (areaM2 * materialPrice * PRICE_MULTIPLIER).toFixed(2);
+  const salePricePerUnit = (salePrice / quantity).toFixed(4);
+  const salePriceUSD = (salePrice * CNY_TO_USD).toFixed(2);
+  const salePricePerUnitUSD = (salePricePerUnit * CNY_TO_USD).toFixed(4);
+
+  // Display results (without premium notice)
+  document.getElementById('result').innerHTML = `
+    <h3>Quote Summary:</h3>
+    <ul>
+      <li>Single label: ${lengthMm.toFixed(2)}mm × ${widthMm.toFixed(2)}mm</li>
+      <li>Material width: ${materialWidth.toFixed(2)}mm</li>
+      <li>Plates per row: ${plates}</li>
+      <li>Total quantity: ${quantity} sheets</li>
+      <li>Total area: ${areaM2.toFixed(4)}㎡</li>
+    </ul>
+    <div class="price-section">
+      <h4>Total Price: ¥${salePrice} ($${salePriceUSD})</h4>
+      <h4>Unit Price: ¥${salePricePerUnit} ($${salePricePerUnitUSD})</h4>
+    </div>
+    <div class="disclaimer">
+      <strong>⚠️ IMPORTANT NOTE:</strong>
+      <p>This quotation applies to standard color labels only and does not include any special processes such as hot stamping, UV coating, screen printing or other effects. Please contact us for additional costs if special treatments are required.</p>
+    </div>
+  `;
+}
+</script>
+
+<style>
+.calculator {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 25px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.input-group {
+  margin: 18px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-group label {
+  width: 120px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.input-group input[type="number"] {
+  width: 100px;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.input-group select {
+  width: 150px;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+}
+
+.unit-note {
+  font-size: 12px;
+  color: #666;
+  margin-left: 5px;
+  font-style: italic;
+}
+
+button {
+  background: #4285f4;
+  color: white;
+  padding: 10px 25px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 15px;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #3367d6;
+}
+
+#result {
+  margin-top: 25px;
+  text-align: left;
+}
+
+.price-section {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin: 20px 0;
+}
+
+.disclaimer {
+  font-size: 14px;
+  color: #d32f2f;
+  margin: 25px 0;
+  padding: 15px;
+  background-color: #ffebee;
+  border: 1px solid #ef9a9a;
+  border-radius: 6px;
+  line-height: 1.6;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.disclaimer strong {
+  font-size: 15px;
+  display: block;
+  margin-bottom: 8px;
+  color: #b71c1c;
+}
+
+small {
+  font-size: 12px;
+  color: #888;
+}
+</style>
