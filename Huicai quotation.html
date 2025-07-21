@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile-Friendly Label Quote Calculator</title>
+    <title>Label Quote Calculator</title>
     <style>
         * {
             box-sizing: border-box;
@@ -184,9 +184,10 @@
             <div class="input-row">
                 <input type="number" id="length" step="0.01" min="0.01" value="100" placeholder="Enter length">
                 <select id="length-unit" class="unit-selector">
-                    <option value="mm">mm</option>
-                    <option value="inch">inch</option>
-                    <option value="mil">mil</option>
+                    <option value="mm">Millimeters(mm)</option>
+                    <option value="cm">Centimeters(cm)</option>
+                    <option value="inch">Inches(inch)</option>
+                    <option value="mil">Mils(mil)</option>
                 </select>
             </div>
             <span class="unit-note">Select your preferred unit</span>
@@ -197,9 +198,10 @@
             <div class="input-row">
                 <input type="number" id="width" step="0.01" min="0.01" value="50" placeholder="Enter width" onchange="autoCalculatePlates()">
                 <select id="width-unit" class="unit-selector">
-                    <option value="mm">mm</option>
-                    <option value="inch">inch</option>
-                    <option value="mil">mil</option>
+                    <option value="mm">Millimeters(mm)</option>
+                    <option value="cm">Centimeters(cm)</option>
+                    <option value="inch">Inches(inch)</option>
+                    <option value="mil">Mils(mil)</option>
                 </select>
             </div>
             <span class="unit-note">Select your preferred unit</span>
@@ -242,8 +244,9 @@
         // Unit conversion factors
         const UNIT_TO_MM = {
             mm: 1,
-            inch: 25.4,
-            mil: 0.0254
+            cm: 10,        // 1 cm = 10 mm
+            inch: 25.4,    // 1 inch = 25.4 mm
+            mil: 0.0254    // 1 mil = 0.0254 mm
         };
 
         // Pricing factor (3 × 1.6 = 4.8)
@@ -309,7 +312,7 @@
             const salePriceUSD = (salePrice * CNY_TO_USD).toFixed(2);
             const salePricePerUnitUSD = (salePricePerUnit * CNY_TO_USD).toFixed(4);
 
-            // Display results (without premium notice)
+            // Display results
             document.getElementById('result').innerHTML = `
                 <h3>Quote Summary:</h3>
                 <ul>
