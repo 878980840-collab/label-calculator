@@ -178,11 +178,11 @@
 <body>
     <div class="calculator">
         <h2>Label quotation</h2>
-  <div class="contact-info" style="margin:10px 0 20px 0; padding:10px; background:#f5f5f5; border-radius:4px; font-size:14px;">
-  <span>Official Supplier: </span>
-  <span style="color:#FF6A00; font-weight:bold;">WeChat: +86 15218803707</span>
-  <span style="margin-left:15px; color:#888;">© 2025 Guangzhou Huicai Paper Products Co., Ltd.</span>
-</div>
+        <div class="contact-info" style="margin:10px 0 20px 0; padding:10px; background:#f5f5f5; border-radius:4px; font-size:14px;">
+            <span>Official Supplier: </span>
+            <span style="color:#FF6A00; font-weight:bold;">WeChat: +86 15218803707</span>
+            <span style="margin-left:15px; color:#888;">© 2025 Guangzhou Huicai Paper Products Co., Ltd.</span>
+        </div>
         <div class="input-group">
             <label>Length:</label>
             <div class="input-row">
@@ -253,8 +253,8 @@
             mil: 0.0254    // 1 mil = 0.0254 mm
         };
 
-        // Pricing factor (3 × 1.6 = 4.8)
-        const PRICE_MULTIPLIER = 4.8;
+        // Pricing factor (3 × cost)
+        const PRICE_MULTIPLIER = 3;
 
         // Exchange rate
         const CNY_TO_USD = 0.1395;
@@ -267,16 +267,22 @@
                         otherSelect.value = this.value;
                     }
                 });
+                autoCalculatePlates(); // 单位变化时重新计算排版
             });
         });
 
-        // Auto-calculate plates based on width (in mm)
+        // Auto-calculate plates based on width (always converted to mm first)
         function autoCalculatePlates() {
             const widthInput = document.getElementById('width');
             const widthUnit = document.getElementById('width-unit').value;
-            const widthMm = (parseFloat(widthInput.value) || 0) * UNIT_TO_MM[widthUnit];
+            const widthValue = parseFloat(widthInput.value) || 0;
+            
+            // Convert to mm first
+            const widthMm = widthValue * UNIT_TO_MM[widthUnit];
+            
             const platesInput = document.getElementById('plates');
             
+            // Determine plates based on mm width
             platesInput.value = widthMm <= 50 ? 4 : 
                             widthMm <= 110 ? 2 : 1;
         }
@@ -310,7 +316,7 @@
             // Calculate area
             const areaM2 = (materialWidth * totalLength) / 1000000;
 
-            // Calculate prices (using 4.8 multiplier)
+            // Calculate prices (using 3× multiplier)
             const salePrice = (areaM2 * materialPrice * PRICE_MULTIPLIER).toFixed(2);
             const salePricePerUnit = (salePrice / quantity).toFixed(4);
             const salePriceUSD = (salePrice * CNY_TO_USD).toFixed(2);
@@ -336,6 +342,9 @@
                 </div>
             `;
         }
+
+        // Initialize plates calculation on page load
+        window.onload = autoCalculatePlates;
     </script>
 </body>
 </html>
